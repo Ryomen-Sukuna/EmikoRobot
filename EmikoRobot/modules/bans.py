@@ -1,7 +1,6 @@
 import html
-import random
+from typing import Optional
 
-from time import sleep
 from telegram import (
     ParseMode,
     Update,
@@ -9,12 +8,10 @@ from telegram import (
     InlineKeyboardMarkup,
 )
 from telegram.error import BadRequest
-from telegram.ext import CallbackContext, Filters, CommandHandler, run_async, CallbackQueryHandler
+from telegram.ext import CallbackContext, Filters, CommandHandler, CallbackQueryHandler
 from telegram.utils.helpers import mention_html
-from typing import Optional, List
 from telegram import TelegramError
 
-import EmikoRobot.modules.sql.users_sql as sql
 from EmikoRobot.modules.disable import DisableAbleCommandHandler
 from EmikoRobot.modules.helper_funcs.filters import CustomFilters
 from EmikoRobot import (
@@ -45,7 +42,6 @@ from EmikoRobot.modules.helper_funcs.string_handling import extract_time
 from EmikoRobot.modules.log_channel import gloggable, loggable
 
 
-
 @connection_status
 @bot_admin
 @can_restrict
@@ -53,13 +49,13 @@ from EmikoRobot.modules.log_channel import gloggable, loggable
 @user_can_ban
 @loggable
 def ban(update: Update, context: CallbackContext) -> str:
+    bot, args = context.bot, context.args
     chat = update.effective_chat
     user = update.effective_user
     message = update.effective_message
     log_message = ""
-    bot = context.bot
-    args = context.args
     reason = ""
+
     if message.reply_to_message and message.reply_to_message.sender_chat:
         r = bot.ban_chat_sender_chat(chat_id=chat.id, sender_chat_id=message.reply_to_message.sender_chat.id)
         if r:
@@ -187,11 +183,11 @@ def ban(update: Update, context: CallbackContext) -> str:
 @user_can_ban
 @loggable
 def temp_ban(update: Update, context: CallbackContext) -> str:
+    bot, args = context.bot, context.args
     chat = update.effective_chat
     user = update.effective_user
     message = update.effective_message
     log_message = ""
-    bot, args = context.bot, context.args
     user_id, reason = extract_user_and_text(message, args)
 
     if not user_id:
@@ -338,7 +334,7 @@ def unbanb_btn(update: Update, context: CallbackContext) -> str:
         bot.answer_callback_query(query.id, text="Deleted!")
         return ""
 
-    
+
 @connection_status
 @bot_admin
 @can_restrict
@@ -346,11 +342,11 @@ def unbanb_btn(update: Update, context: CallbackContext) -> str:
 @user_can_ban
 @loggable
 def punch(update: Update, context: CallbackContext) -> str:
+    bot, args = context.bot, context.args
     chat = update.effective_chat
     user = update.effective_user
     message = update.effective_message
     log_message = ""
-    bot, args = context.bot, context.args
     user_id, reason = extract_user_and_text(message, args)
 
     if not user_id:
@@ -398,10 +394,9 @@ def punch(update: Update, context: CallbackContext) -> str:
     return log_message
 
 
-
 @bot_admin
 @can_restrict
-def punchme(update: Update, context: CallbackContext):
+def punchme(update: Update, _: CallbackContext):
     user_id = update.effective_message.from_user.id
     if is_user_admin(update.effective_chat, user_id):
         update.effective_message.reply_text("I wish I could... but you're an admin.")
@@ -423,11 +418,12 @@ def punchme(update: Update, context: CallbackContext):
 @user_can_ban
 @loggable
 def unban(update: Update, context: CallbackContext) -> Optional[str]:
+    bot, args = context.bot, context.args
     message = update.effective_message
     user = update.effective_user
     chat = update.effective_chat
     log_message = ""
-    bot, args = context.bot, context.args
+
     if message.reply_to_message and message.reply_to_message.sender_chat:
         r = bot.unban_chat_sender_chat(chat_id=chat.id, sender_chat_id=message.reply_to_message.sender_chat.id)
         if r:
@@ -483,9 +479,10 @@ def unban(update: Update, context: CallbackContext) -> Optional[str]:
 @can_restrict
 @gloggable
 def selfunban(update: Update, context: CallbackContext) -> str:
+    bot, args = context.bot, context.args
     message = update.effective_message
     user = update.effective_user
-    bot, args = context.bot, context.args
+
     if user.id not in DRAGONS or user.id not in TIGERS:
         return
 
@@ -525,10 +522,11 @@ def selfunban(update: Update, context: CallbackContext) -> str:
 @bot_admin
 @can_restrict
 @loggable
-def banme(update: Update, context: CallbackContext):
+def banme(update: Update, _: CallbackContext):
     user_id = update.effective_message.from_user.id
     chat = update.effective_chat
     user = update.effective_user
+
     if is_user_admin(update.effective_chat, user_id):
         update.effective_message.reply_text("⚠️ I cannot banned admin.")
         return
@@ -553,8 +551,8 @@ def banme(update: Update, context: CallbackContext):
 
 @dev_plus
 def snipe(update: Update, context: CallbackContext):
-    args = context.args
-    bot = context.bot
+    bot, args = context.bot, context.args
+
     try:
         chat_id = str(args[0])
         del args[0]
